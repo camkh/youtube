@@ -9,7 +9,7 @@ if (empty($_SESSION['tokenSessionKey'])) {
 }
 function checkDuplicate($bid,$label='',$max=3,$start = 1){
     if(!empty($label)) {
-        $link_blog = 'https://www.blogger.com/feeds/'.$bid.'/posts/summary/-/'.$label.'?max-results='.$max .'&start-index='.$start.'&alt=json-in-script';
+        $link_blog = 'https://www.blogger.com/feeds/'.$bid.'/posts/summary/-/'.urlencode($label).'?max-results='.$max .'&start-index='.$start.'&alt=json-in-script';
         $response = file_get_contents($link_blog);
         $response = str_replace('gdata.io.handleScriptLoaded({', '{',$response);
         $response = str_replace('}}]}});', '}}]}}',$response);
@@ -127,16 +127,24 @@ function getPaginationString($page = 1, $totalitems, $limit = 15, $adjacents = 1
     return $pagination;
 
 }
-
-
-$bid = !empty($_GET['b']) ? $_GET['b'] : '7271011833334695575';
 $label = !empty($_GET['l']) ? $_GET['l'] : '';
-$max = !empty($_GET['max']) ? $_GET['max'] : 20;
+if(!empty($_GET['cat'])) {
+    if($_GET['cat'] == 1) {
+        unset($_SESSION['label']);
+    } else {
+        $_SESSION['label'] = $_GET['cat']; 
+    }       
+}
+$label = !empty($_SESSION['label']) ? $_SESSION['label'] : $label;
+$bid = !empty($_GET['b']) ? $_GET['b'] : default_blog;
+$max = !empty($_GET['max']) ? $_GET['max'] : 10;
 $page = !empty($_GET['page']) ? $_GET['page'] : 1;
 $data = checkDuplicate($bid,$label,$max,$page);
+
 $totalResults = $data->feed->{'openSearch$totalResults'}->{'$t'};
 $startIndex = $data->feed->{'openSearch$startIndex'}->{'$t'};
 $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
+$category = $data->feed->category;
 ?>
 <!doctype html>
 <html>
@@ -172,10 +180,10 @@ $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
                             <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline" role="grid">
                                 <div class="row">
                                     <div class="dataTables_header clearfix">
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div id="DataTables_Table_0_length" class="dataTables_length">
                                                 <label>                                    
-                                                    <select name="DataTables_Table_0_length" size="1" aria-controls="DataTables_Table_0" class="select2-offscreen" tabindex="-1">
+                                                    <select name="DataTables_Table_0_length" class="form-control">
                                                         <option value="5" selected="selected">
                                                             5
                                                         </option>
@@ -196,7 +204,22 @@ $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
+                                            <label>                                    
+                                                <select id="input17" class="select2-select-00 col-md-12 full-width-fix" onchange="onChageLabel(this.value)">
+                                                    <option value="1">
+                                                        Filter by Category
+                                                    </option>
+                                                    <?php if(!empty($category)):
+                                                        foreach ($category as $key => $term):?>
+                                                    <option value="<?php echo $term->term;?>" <?php if(!empty($label) && $label == $term->term): echo 'selected'; endif;?>>
+                                                        <?php echo $term->term;?>
+                                                    </option>
+                                                    <?php endforeach; endif;?>
+                                                </select>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-4">
                                             <div class="dataTables_filter" id="DataTables_Table_0_filter">
                                                 
                                                 <form method="post">
@@ -238,13 +261,21 @@ $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
                                     <tbody role="alert" aria-live="polite" aria-relevant="all">
                                         <?php if(!empty($data)):?>                                        
                                         <?php foreach ($data->feed->entry as $key => $value):
+                                            foreach ($value->link as $links) {
+                                                if($links->rel == 'alternate') {
+                                                    $link = $links->href;
+                                                }
+                                            }
                                             $arr   = explode('-', $value->id->{'$t'});
                                             $pid   = $arr[2];
                                             ?><tr class="odd">
                                             <td class="checkbox-column  sorting_1">
                                                <input type="checkbox" id="itemid" name="itemid[]" class="uniform" value="<?php echo @$pid; ?>" />
                                             </td>
-                                            <td class=" "><span class="responsiveExpander"></span><?php echo @$value->title->{'$t'};?></td>
+                                            <td class=" "><span class="responsiveExpander"></span>
+                                                <a href="<?php echo @$link;?>" target="_blank"><?php echo @$value->title->{'$t'};?>
+                                            </a>
+                                            </td>
                                             <td class=" ">Greyson</td>
                                             <td class=" ">joey123</td>
                                             <td class=" ">
@@ -301,6 +332,8 @@ $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
     <script type="text/javascript" src="<?php echo base_url; ?>bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="<?php echo base_url; ?>assets/js/libs/lodash.compat.min.js"></script> 
     <script type="text/javascript" src="<?php echo base_url; ?>assets/plugins/noty/packaged/jquery.noty.packaged.min.js"></script>
+    <script type="text/javascript" src="<?php echo base_url; ?>assets/plugins/select2/select2.min.js"></script>
+    <link href="<?php echo base_url;?>assets/css/plugins/select2.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript">
         $( document ).ready(function() {
             <?php if(!empty($_GET['m'])):?>
@@ -329,15 +362,7 @@ $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
                             }]});
                     return false
                 });             
-            // $('.btn-notification').click(function(){     
-            //     var success = generate('success');           
-            //     setTimeout(function () {
-            //     $.noty.setText(this.options.id, 'delete success!');
-            //     }, 1000);
-            //         setTimeout(function () {
-            //                 $.noty.closeAll();
-            //             }, 4000);
-            //     });
+                $("#input17").select2();
             
         }); 
         function generate(type) {
@@ -359,7 +384,10 @@ $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
             generate('warning');
             generate('notification');
             generate('success');
-        }               
+        }  
+        function onChageLabel(val) {
+            if (val) window.location.href= '<?php echo base_url;?>blogger/index.php?cat=' + val
+        }             
     </script>
 </body>
 </html>

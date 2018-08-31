@@ -1,5 +1,6 @@
 <?php
 define("base_url", "http://localhost/youtube/youtube/");
+define("default_blog", "7271011833334695575");
 //for current url
 $CURRENT_URL = (!empty($_SERVER['HTTPS'])) ? "https://" . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'] : "http://" . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
 session_start();

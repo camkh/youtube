@@ -110,4 +110,59 @@ class file {
         $fp = fopen($upload_path . $file_name, 'w');
 
     }
+
+    public function GetBlogIdPost($fileName)
+    {
+        $blogID = $this->getBlogID();
+        foreach ($blogID as $bids) {
+            $this->createPostFile($fileName,$bids->bid);
+        }
+    }
+    public function createPostFile($fileName,$data,$type='a')
+    {
+        if (!file_exists(dirname(__FILE__) . '/../uploads/blogger')) {
+            mkdir(dirname(__FILE__) . '/../uploads/blogger', 0700);
+        }
+        if (!file_exists(dirname(__FILE__) . '/../uploads/blogger/posts')) {
+            mkdir(dirname(__FILE__) . '/../uploads/blogger/posts', 0700);
+        }
+        if (!file_exists(dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'])) {
+            mkdir(dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'], 0700);
+        }
+        $uploadPath = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/';
+        $handle = fopen($uploadPath.$fileName.'.csv', $type);
+        fputcsv($handle, array($data));
+        fclose($handle);
+    }
+
+    public function getBlogID()
+    {
+        return $this->getFileContent(dirname(__FILE__) . '/../uploads/files/blogs/blogid.csv');
+    }
+    public function getBlogToEdit()
+    {
+        $blogEdit = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/' . $_GET['id'].'.csv';
+        return $this->getFileContent($blogEdit);
+    }
+
+    public function cleanDuplicatePost($file,$bid='')
+    {
+        $chekcLine = $this->getFileContent($file);
+        foreach ($chekcLine as $row) {
+            if ( $row->bid == $bid) {
+                return $bid;
+            }
+        }
+        return false;
+    }
+    public function searchForId($id, $array) {
+       foreach ($array as $key => $val) {
+        $pos = strpos($val['bid'], $id);
+        if ($pos === false) {
+        } else {
+            return @$val['bname'];
+        }
+       }
+       return null;
+    }
 }

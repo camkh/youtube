@@ -81,15 +81,19 @@ class blogger extends file {
         }
         /* end insert new list */
         if (empty($post_id)) {
-            $data_vdo = array(
-                'title'     => trim($title),
-                'type'     => 'vdolist',
-                'object_id' => $log_id,
-                'image'     => $thumb,
-                'label'     => @$New_label,
-                'list'     => @$viddata,
-            );            
+            $str = time();
+            $str = md5($str);
+            $uniq_id = substr($str, 0, 9);
+            $title = trim($title) . ' id ' . $uniq_id;   
         }
+        $data_vdo = array(
+            'title'     => trim($title),
+            'type'     => 'vdolist',
+            'object_id' => $log_id,
+            'image'     => $thumb,
+            'label'     => @$New_label,
+            'list'     => @$viddata,
+        );    
         return $data_vdo;
     }
     public function getsitecontent($html, $videotype = '')

@@ -9,7 +9,7 @@ if (empty($_SESSION['tokenSessionKey'])) {
 include dirname(__FILE__) .'/../library/blogger.php';
 
 /* 
-* /search.php?start=1&keyword=keyword here
+* /search.php?start=1&keyword=keyword here&frompost=12345
 */
 function search($keyWord='',$bid,$label='',$max=3,$start = 1){
     if(!empty($label)) {
@@ -67,7 +67,12 @@ if(!empty($_GET['start'])) {
 	$data = array();
 	$search = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/search.csv';
 	foreach ($getBlogId as $value) {
-		$data[] = array($value->bid,0);  
+		$pos = strpos($value->bid, default_blog);
+		if ($pos === false) {
+			$data[] = array($value->bid,0);
+        } else {
+            $data[] = array($value->bid,1); 
+        }
 	}
 	$fp = fopen($search, 'w');
     foreach ($data as $fields) {
@@ -83,10 +88,7 @@ if(!empty($_GET['start'])) {
 		}
 	}
 
-	/*clean old post*/
-	$searchFound = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/search_found.csv';
-	unlink($searchFound);
-	/*End clean old post*/
+	$_SESSION['to_post_id'] = !empty($_GET['frompost']) ? $_GET['frompost'] : 'search_found';
 	$keyWordA = $_GET['keyword'];
 	$keyWord = urlencode($keyWordA);
 	echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&keyword='.$keyWord.'&bid=' . $bid . '&sart=1#1";</script>';
@@ -110,10 +112,14 @@ if(!empty($_GET['search']) && !empty($_GET['bid'])) {
 
 	</script>
 	<?php elseif(!empty($post) && empty($post['runout'])):
-		$searchFound = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/search_found.csv';
-		$handle = fopen($searchFound, "a");
-        fputcsv($handle, array($blogID,$post['pid'],$post['title']));
-        fclose($handle);
+		$fileNames = $_SESSION['to_post_id'];
+		$searchFound = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/'.$fileNames.'.csv';
+		$checkLine = $file->cleanDuplicatePost($searchFound,$blogID);
+		if(empty($checkLine)) {
+			$handle = fopen($searchFound, "a");
+	        fputcsv($handle, array($blogID,$post['pid']));
+	        fclose($handle);
+    	}
 
         /*start save current id*/
         $data = array();
@@ -136,21 +142,31 @@ if(!empty($_GET['search']) && !empty($_GET['bid'])) {
 	    /*end start save current id*/
 
 	    /*start search new blog*/
+	    $next = false;
 	   	$getIdToSearch = $file->getFileContent($search,'csv');
 		foreach ($getIdToSearch as $key => $row) {
 			if($row[1] == 0) {
-				$bid = $row[0];
+				$next = $row[0];
 			}
 		}
 		$keyWordA = $_GET['keyword'];
 		$keyWord = urlencode($keyWordA);
-		echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&bid=' . $bid . '&keyword='.$keyWord.'&sart=1#1";</script>';
+		if(!empty($next)) {
+			echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&bid=' . $next . '&keyword='.$keyWord.'&sart=1#1";</script>';
+		} else {
+			header('Location: ' . base_url . 'blogger/add.php?id='.$_SESSION['to_post_id']);
+			exit();
+		}		
 	    /*End start search new blog*/
 	else :
-		$searchFound = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/search_found.csv';
-		$handle = fopen($searchFound, "a");
-        fputcsv($handle, array($blogID,'',''));
-        fclose($handle);
+		$fileNames = $_SESSION['to_post_id'];
+		$searchFound = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/'.$fileNames.'.csv';
+		$checkLine = $file->cleanDuplicatePost($searchFound,$blogID);
+		if(empty($checkLine)) {
+			$handle = fopen($searchFound, "a");
+	        fputcsv($handle, array($blogID,''));
+	        fclose($handle);
+    	}
 
 		/*start save bid that not found id*/
         $data = array();
@@ -173,15 +189,21 @@ if(!empty($_GET['search']) && !empty($_GET['bid'])) {
 	    /*end start save bid that not found id*/
 
 	    /*start search new blog*/
+	    $gnext = false;
 	   	$getIdToSearch = $file->getFileContent($search,'csv');
 		foreach ($getIdToSearch as $key => $row) {
 			if($row[1] == 0) {
-				$bid = $row[0];
+				$gnext = $row[0];
 			}
 		}
 		$keyWordA = $_GET['keyword'];
 		$keyWord = urlencode($keyWordA);
-		echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&bid=' . $bid . '&keyword='.$keyWord.'&sart=1#1";</script>';
+		if(!empty($gnext)) {
+			echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&bid=' . $gnext . '&keyword='.$keyWord.'&sart=1#1";</script>';
+		} else {
+			header('Location: ' . base_url . 'blogger/add.php?id='.$_SESSION['to_post_id']);
+			exit();
+		}
 	    /*End start search new blog*/
 	 endif;?>
 <?php 

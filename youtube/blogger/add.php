@@ -42,7 +42,7 @@ function sitekmobilemovie($param = '', $title = '', $thumb = '', $post_id = '', 
 if (!empty($_POST['submit'])) {
     include dirname(__FILE__) .'/../library/blogger.php';
     $videotype = '';
-    $id = '';
+    $id = !empty($_POST['edit_post_id']) ? $_POST['edit_post_id'] : '';
     $xmlurl    = @$_POST['blogid'];
     $thumb     = @$_POST['imageid'];
     $label = @$_POST['label'];
@@ -57,10 +57,9 @@ if (!empty($_POST['submit'])) {
     $file = new file();
     $csv = $file->json($upload_path,$file_name, $list);
     //$code = get_from_site_id($xmlurl, $id, $thumb, $title, '', $videotype); 
-
-    if (!empty($id)) {
+    if (!empty($_POST['edit_post_id'])) {
         //redirect(base_url() . 'post/getcode/edit/' . $id);
-        header('Location: ' . base_url . '/blogger/post.php?do=edit');
+        header('Location: ' . base_url . '/blogger/edit.php?id='.$_POST['edit_post_id']);
     } else {
         header('Location: ' . base_url . '/blogger/post.php?do=add');
     }
@@ -110,6 +109,9 @@ if (!empty($_POST['submit'])) {
                                     </div>
                                     <div class="col-md-10">
                                         <input type="text" class="form-control" name="title" id="title" />
+                                        <?php if(!empty($_GET['id'])):?>
+                                        <input type="hidden" class="form-control" name="edit_post_id" value="<?php echo $_GET['id'];?>" />
+                                        <?php endif;?>
                                     </div>                         
                                 </div>                         
                             </div>                         

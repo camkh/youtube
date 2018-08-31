@@ -12,13 +12,11 @@ $upload_path = dirname(__FILE__) . '/../uploads/user/'.$_SESSION['user_id'] . '/
 $file_name = 'post.json';
 $file = new file();
 $getPost = $file->getFileContent($upload_path.$file_name);
-$jsonTxt = dirname(__FILE__) . '/../uploads/files/blogs/blogid.csv';
-$getBlogId = $file->getFileContent($jsonTxt);
+$getBlogId = $file->getBlogID();
 
 if (empty($_GET['do'])) {
     if(!empty($_GET['id'])) {
-        $blogEdit = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/' . $_GET['id'].'.csv';
-        $getEditBlogId = $file->getFileContent($blogEdit);
+        $getEditBlogId = $file->getBlogToEdit();
         if(!empty($getEditBlogId)) {
             $editaction = $_GET['id'];
         } else {
@@ -31,7 +29,7 @@ if (empty($_GET['do'])) {
 $blogger = new blogger();
 //$post = $blogger->MoviePost($getBlogId,$getPost);
 
-    if (!empty($_POST['submit'])) {
+    if (!empty($_POST['idblog'])) {
         $idblog    = @$_POST['idblog'];
         $_SESSION['id_edit']    = @$_POST['postid'];
         $idpost    = @$_POST['idpost'];
@@ -84,9 +82,10 @@ $blogger = new blogger();
         $getEditBlogId = $file->getFileContent($blogEdit);
         $arrSearch = array(); 
         foreach ($getEditBlogId as $values) {
+            $gpid = @$values->bname;
             $arrSearch[] = array(
                 'bid' =>$values->bid,
-                'bname'=>$values->bname
+                'bname'=> $gpid
             );
         }
         /*end get Edit ID post*/
@@ -103,23 +102,32 @@ $blogger = new blogger();
             foreach ($json->blogid as $bids) {
                 $i++;                
                 if ( $bids->bid == $id ) {
-                    /*post to Blog*/
-                    $pid = searchForId($bids->bid, $arrSearch);
+                    /*post to Blog*/                    
+                    $pid = $file->searchForId($bids->bid, $arrSearch);
                     $dataContent          = new stdClass();
-                    $dataContent->setdate = false;        
-                    $dataContent->editpost = 1;
-                    $dataContent->pid      = $pid;
+                    $dataContent->setdate = false;   
                     $dataContent->customcode = '';
-                    $dataContent->bid     = $bids->bid;
-                    $dataContent->title    = $json->title;        
+                    $dataContent->bid     = $bids->bid;                          
                     $dataContent->bodytext = $json->body;
                     $dataContent->label    = $json->label;
+                    if(!empty($pid)) {
+                        $dataContent->editpost = 1;
+                        $dataContent->pid      = $pid;
+                        $dataContent->title    = $json->title;
+                    } else {
+                        $str = time();
+                        $str = md5($str);
+                        $uniq_id = substr($str, 0, 9);
+                        $dataContent->title    = $json->title . ' id ' . $uniq_id;  
+                        $dataContent->editpost = false;
+                        $dataContent->pid      = '';
+                    }
                     $getpost               = $blogger->blogger_post($client,$dataContent);
                     /*End post to Blog*/
-                    $bidArr[] = array('bid'=> $bids->bid,'pid'=>$pid,'status'=>1); 
+                    $bidArr[] = array('bid'=> $bids->bid,'pid'=>$getpost,'status'=>1); 
                     $posted = array_push($countPosted, $bids->bid);
                 } else {
-                    $bidArr[] = array('bid'=> $bids->bid,'pid'=>$bids->pid,'status'=>$bids->status);
+                    $bidArr[] = array('bid'=> $bids->bid,'pid'=> $bids->pid,'status'=>$bids->status);
                     if($bids->status == 0) {        
                         $postNext = $bids->bid;
                         array_push($countPosted, $bids->bid);
@@ -160,7 +168,7 @@ function searchForId($id, $array) {
     $pos = strpos($val['bid'], $id);
     if ($pos === false) {
     } else {
-        return $val['bname'];
+        return @$val['bname'];
     }
    }
    return null;
@@ -178,6 +186,19 @@ if(!empty($_GET['do']) && $_GET['do'] == 'post' && empty($_GET['id'])) {
 } else if(!empty($_GET['id']) && !empty($_GET['do']) && $_GET['do'] == 'post') {
     $postToShare = doPost();
 } 
+
+
+if (!empty($_POST['idpost']) && !empty($_POST['keyword'])) {
+    /*creat for default blog*/
+    $uploadPath = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/';
+    $handle = fopen($uploadPath.$_POST['idpost'].'.csv', 'a');
+    fputcsv($handle, array(default_blog,$_POST['idpost']));
+    fclose($handle);
+    /*End creat for default blog*/
+    $keyword = urlencode($_POST['keyword']);
+    header("Location: " . base_url . "blogger/search.php?start=1&keyword=" . $keyword . "&frompost=".$_POST['idpost']);
+    exit();
+}
 ?>
 <!doctype html>
 <html>
@@ -309,7 +330,26 @@ if(!empty($_GET['do']) && $_GET['do'] == 'post' && empty($_GET['id'])) {
                             </div>
                         </div>
                         <?php else:?>
-                            ssssssssssssss
+
+                        <!-- if not found in directory -->
+                        <form method="post" id="validate" class="form-horizontal row-border">
+                            <div class="form-group">
+                                <div class="col-md-2">
+                                    <label for="imageid">Fill the keyword</label>
+                                </div>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" name="keyword" placeholder="Please file the keyword" required />
+                                     <input type="hidden" value="<?php echo $_GET['id'];?>" name="idpost"/>
+                                </div>
+                            </div>
+                            <div class="form-group fixed">
+                                <div class="col-md-12">
+                                    <input name="submit" type="submit" value="Public" class="btn btn-primary pull-right" />
+                                </div>
+                            </div>
+                        </form>
+                        <!-- end if not found in directory -->
+
                         <?php endif;?>
                     </form>
                 </div>

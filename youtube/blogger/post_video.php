@@ -9,6 +9,8 @@ if (empty($_SESSION['tokenSessionKey'])) {
 }
 if(!empty($_POST['blogID']) && !empty($_POST['url'])) {
   unset($_SESSION['blogID']);
+  unset($_SESSION['blabel']);
+  unset($_SESSION['max']);
   $_SESSION['blogID'] = $_POST['blogID'];
   $_SESSION['addtxt'] = $_POST['addtxt'];
   $_SESSION['blabel'] = $_POST['blabel'];
