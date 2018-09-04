@@ -86,13 +86,17 @@ function doShare()
             if(!empty($tCheck[1])) {
                 $titles[$i] = $tCheck[1];
                 if(!empty($value->link[4]['href'])) {
-                    $posts[] = array('id'=> trim($tCheck[1]), 'url'=> (string) $value->link[4]['href'],'title'=> trim($tCheck[0]),'status'=>0);
+                    $tile = trim($tCheck[0]);
+                    if(!empty($tile)) {
+                        $link = (string) $value->link[4]['href'];
+                        $posts[] = array('id'=> trim($tCheck[1]), 'url'=> $link,'title'=> $tile,'status'=>0);
+                    }
                 } else if(!empty($value->link[2]['href'])) {
                     $posts[] = array('id'=> trim($tCheck[1]), 'url'=> (string) $value->link[2]['href'],'title'=> trim($tCheck[0]),'status'=>0);
                 }
             }
             $i++;
-        }   
+        } 
         $response['posts'] = $posts;
         csvstr($response);
         /*End add to list first*/

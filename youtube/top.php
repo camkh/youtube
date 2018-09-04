@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Phnom_Penh');
 define("base_url", "http://localhost/youtube/youtube/");
 define("default_blog", "7271011833334695575");
 //for current url
