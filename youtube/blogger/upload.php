@@ -10,6 +10,7 @@ function uploadImageFile() { // Note: GD library is required for this function
         $iWidth = $_POST['w'];
         $iHeight = $_POST['h']; // desired image result dimensions
         $iJpgQuality = 90;
+        $resize_to   = 800;
 
         if ($_FILES) {
 
@@ -58,6 +59,13 @@ function uploadImageFile() { // Note: GD library is required for this function
                                 return;
                         }
 
+                        /* resize */
+                        include dirname(__FILE__) .'/../library/ChipVN/Loader.php';
+                        \ChipVN\Loader::registerAutoLoad();
+                        if ($resize_to > 0) {
+                            \ChipVN\Image::resize($sTempFileName, $resize_to, 0);
+                        }
+
                         // create a new true color image
                         $vDstImg = @imagecreatetruecolor( $iWidth, $iHeight );
 
@@ -81,8 +89,7 @@ function uploadImageFile() { // Note: GD library is required for this function
                         /* end get some option*/
 
                         /* watermark */
-                        include dirname(__FILE__) .'/../library/ChipVN/Loader.php';
-                        \ChipVN\Loader::registerAutoLoad();
+                        
                         $service  = 'Picasa';
                         $uploader = \ChipVN\Image_Uploader::factory($service);
                         $uploader->login('104724801112461222967', '0689989@Sn');
@@ -91,7 +98,7 @@ function uploadImageFile() { // Note: GD library is required for this function
                         $watermark = 1;
                         /* logo (right bottom, right center, right top, left top, .v.v.) */
                         if(!empty($_POST['watermark'])) {
-                            $logoPosition = 'rb';
+                            $logoPosition = 'lb';
                             $logoPath = dirname(__FILE__) . '/../uploads/watermark/web-logo.png';
                             \ChipVN\Image::watermark($imagePath, $logoPath, $logoPosition);
                         }

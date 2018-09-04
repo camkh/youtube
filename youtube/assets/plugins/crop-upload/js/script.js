@@ -92,7 +92,7 @@ function fileSelectHandler() {
                 bgOpacity: 0.5,
                 bgColor: 'white',
                 addClass: 'jcrop-normal',
-                minSize: [200, 105], // min crop size
+                minSize: [200, 104], // min crop size
                 aspectRatio : 16 / 9, // keep aspect ratio 1:1
                 boxWidth:1200,
                 boxHeight:630,

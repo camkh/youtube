@@ -218,16 +218,22 @@ if (!empty($_POST['submit'])) {
                                 <option value="">
                                     Select video type
                                 </option>
-                                <option value="continue">
-                                    រង់ចាំភាកបន្ត
-                                </option>
                                 <option value="th">
                                     ថៃ
+                                </option>
+                                <option value="th-s">
+                                    ថៃដាច់
                                 </option>
                                 <option value="ch">
                                     ចិន
                                 </option>
+                                <option value="ch-s">
+                                    ចិនដាច់
+                                </option>
                                 <option value="ko">
+                                    កូរ៉េ
+                                </option>
+                                <option value="ko-s">
                                     កូរ៉េ
                                 </option>
                                 <option value="kh">
