@@ -87,7 +87,7 @@ class blogger extends file {
             $title = trim($title) . ' id ' . $uniq_id;   
         }
         $data_vdo = array(
-            'title'     => trim($title),
+            'title'     => trim($title) . ' || part ' . '[ '.@count($viddata).' ]',
             'type'     => 'vdolist',
             'object_id' => $log_id,
             'image'     => $thumb,
@@ -590,6 +590,9 @@ HTML;
                     case 'iframe':
                         $vtype = 'iframe';
                         break;
+                    case 'ok':
+                        $vtype = 'ok';
+                        break;
                     case 'vimeo':
                         $vtype = 'vimeo';
                         break;
@@ -738,6 +741,14 @@ HTML;
                     $v_type = 'iframe';
                 }
                 break;
+                case 'ok':
+                    if (!empty($videotype)) {
+                        $v_id = $param;
+                    } else {
+                        preg_match("/videoembed\/([^&]+)/i", $param, $code);
+                        $v_id = $code[1];
+                    }
+                    break;
             default:
                 $v_id   = $param;
                 $v_type = 'iframe';
@@ -763,6 +774,8 @@ HTML;
             $v_type = 'dailymotion';
         } elseif (preg_match('/facebook.com/', $param) || preg_match('/fb.com/', $param)) {
             $v_type = 'fbvid';
+        } elseif (preg_match('/ok.ru/', $param)) {
+            $v_type = 'ok';
         } else {
             $v_type = '';
         }
@@ -874,6 +887,9 @@ HTML;
                 case 'fbvid':
                   $vType = 'fb';
                   break;
+                case 'ok':
+                  $vType = 'ok';
+                  break;
                 default:
                   $vType = 'if';
                   break;
@@ -893,5 +909,42 @@ HTML;
         } else {
             return false;
         }        
+    }
+
+    public function resize_image($url, $imgsize)
+    {
+        if (preg_match('/blogspot/', $url)) {
+            //inital value
+            $newsize = "s" . $imgsize;
+            $newurl  = "";
+            //Get Segments
+            $path     = parse_url($url, PHP_URL_PATH);
+            $segments = explode('/', rtrim($path, '/'));
+            //Get URL Protocol and Domain
+            $parsed_url = parse_url($url);
+            $domain     = $parsed_url['scheme'] . "://" . $parsed_url['host'];
+
+            $newurl_segments = array(
+                $domain . "/",
+                $segments[1] . "/",
+                $segments[2] . "/",
+                $segments[3] . "/",
+                $segments[4] . "/",
+                $newsize . "/", //change this value
+                $segments[6],
+            );
+            $newurl_segments_count = count($newurl_segments);
+            for ($i = 0; $i < $newurl_segments_count; $i++) {
+                $newurl = $newurl . $newurl_segments[$i];
+            }
+            return $newurl;
+        } elseif (preg_match('/googleusercontent/', $url)) {
+            $newsize = "=s" . $imgsize;
+            $segments = explode('=', $url);
+            $newurl = $segments[0].$newsize;
+            return $newurl;
+        } else {
+            return $url;
+        }
     }
 }

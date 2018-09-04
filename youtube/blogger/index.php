@@ -145,6 +145,7 @@ $totalResults = $data->feed->{'openSearch$totalResults'}->{'$t'};
 $startIndex = $data->feed->{'openSearch$startIndex'}->{'$t'};
 $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
 $category = $data->feed->category;
+include dirname(__FILE__) .'/../library/blogger.php';
 ?>
 <!doctype html>
 <html>
@@ -244,11 +245,11 @@ $category = $data->feed->category;
                                             <th>
                                                 <input type="checkbox" class="uniform" name="allbox" id="checkAll" />
                                             </th>
-                                            <th>
+                                            <th style="width: 50%">
                                                 Name
                                             </th>
                                             <th class="hidden-xs">
-                                                Parts
+                                                Categories
                                             </th>
                                             <th>
                                                 Status
@@ -259,8 +260,32 @@ $category = $data->feed->category;
                                         </tr>
                                     </thead>
                                     <tbody role="alert" aria-live="polite" aria-relevant="all">
-                                        <?php if(!empty($data)):?>                                        
-                                        <?php foreach ($data->feed->entry as $key => $value):
+                                        <?php if(!empty($data)):
+                                            $blogger = new blogger();
+                                         foreach ($data->feed->entry as $key => $value):
+                                            //echo '<pre>';
+                                            //var_dump($value);
+                                            //echo '</pre>';
+
+                                            
+                                            //label
+                                            $labels = array();
+                                            $labelLink = array();
+                                            //$status = 'End';
+                                            foreach ($value->category as $categorys) {
+                                                $labels[] = $categorys->term;
+                                                $labelLink[] = '<a href="'.base_url.'blogger/index.php?cat='.urlencode($categorys->term).'"><span class="label label-info">'.$categorys->term . '</span></a>';
+                                                if(preg_match('/Continue/', $categorys->term)) {
+                                                    //$status = 'End';
+                                                }
+                                            }
+                                            $cat = implode(',', $labels);
+                                            if(preg_match('/Continue/', $cat)) {
+                                                $status = '<span class="label label-danger">Continue</span>';
+                                            } else {
+                                                $status = '<span class="label label-success">End</span>';
+                                            }
+                                            //link
                                             foreach ($value->link as $links) {
                                                 if($links->rel == 'alternate') {
                                                     $link = $links->href;
@@ -273,11 +298,13 @@ $category = $data->feed->category;
                                                <input type="checkbox" id="itemid" name="itemid[]" class="uniform" value="<?php echo @$pid; ?>" />
                                             </td>
                                             <td class=" "><span class="responsiveExpander"></span>
-                                                <a href="<?php echo @$link;?>" target="_blank"><?php echo @$value->title->{'$t'};?>
+                                                <a href="<?php echo @$link;?>" target="_blank"><img src="<?php
+                                                $img = $blogger->resize_image($value->{'media$thumbnail'}->url,'72-c');
+                                                 echo $img;?>" style="float: left;max-width: 72px" class="img-rounded" />&nbsp;<?php echo @$value->title->{'$t'};?>
                                             </a>
                                             </td>
-                                            <td class=" ">Greyson</td>
-                                            <td class=" ">joey123</td>
+                                            <td class=" "><?php echo implode(' ', $labelLink);?></td>
+                                            <td class=" "><?php echo $status;?></td>
                                             <td class=" ">
                                                 <div class="btn-group">
                                                 <button class="btn btn-sm dropdown-toggle" data-toggle="dropdown">
@@ -286,7 +313,7 @@ $category = $data->feed->category;
                                                 </button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <a href="<?php echo base_url; ?>post/continues/<?php echo @$pid; ?>"><i class="icon-edit"></i> Addmore</a>
+                                                        <a href="<?php echo base_url; ?>blogger/add.php?id=<?php echo @$pid; ?>&title=<?php echo urlencode(@$value->title->{'$t'});?>&img=<?php echo $blogger->resize_image($value->{'media$thumbnail'}->url,'0');?>&l=<?php echo @urlencode($cat);?>"><i class="icon-edit"></i> Add & Edit</a>
                                                     </li>
                                                     <li>
                                                         <a href="<?php echo base_url; ?>blogger/edit.php?id=<?php echo @$pid; ?>"><i class="icon-edit"></i> Edit</a>

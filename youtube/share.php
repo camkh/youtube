@@ -25,7 +25,7 @@ function csvstr($list = array(),$update='')
     }    
     $file_name = date("m-d-Y").'_file.json';
     if (!file_exists($upload_path)) {
-        mkdir($upload_path, 0700);
+        mkdir($upload_path, 0700, true);
     }
     if (!file_exists($upload_path.$file_name)) {
         $f = fopen($upload_path.$file_name, 'w');
