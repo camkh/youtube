@@ -17,8 +17,7 @@ if(!empty($_POST['blogID']) && !empty($_POST['url'])) {
   $_SESSION['delay'] = $_POST['delay'];
   $_SESSION['max'] = !empty($_POST['max']) ? $_POST['max'] : count($_POST['url']);
 
-
-  if(!empty($_POST['url'])) {
+  if(!empty($_POST['url']) && $_POST['url'][0] !='') {
     include dirname(__FILE__) .'/../library/blogger.php';
     $bid = !empty($_SESSION['blogID'])? $_SESSION['blogID'] : "7365436773131480017";
     $client = new Google_Client();

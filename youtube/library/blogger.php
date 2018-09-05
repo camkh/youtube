@@ -710,7 +710,7 @@ HTML;
                 }
                 break;
             case 'dailymotion':
-                preg_match('#http://www.dailymotion.com/embed/video/([A-Za-z0-9]+)#s', $param, $matches);
+                preg_match('#dailymotion.com/embed/video/([A-Za-z0-9]+)#s', $param, $matches);
                 if (!empty($matches[1])) {
                     $v_ids = $matches[1];
                 } else {
