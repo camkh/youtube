@@ -96,7 +96,7 @@ function doShare()
                 }
             }
             $i++;
-        } 
+        }
         $response['posts'] = $posts;
         csvstr($response);
         /*End add to list first*/
