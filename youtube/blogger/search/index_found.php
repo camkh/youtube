@@ -1,169 +1,31 @@
 <?php
-include dirname(__FILE__) .'/../top.php';
-if (empty($_SESSION['tokenSessionKey'])) {
-    $client = new Google_Client();
-    $client->setAccessToken($_SESSION['tokenSessionKey']);
-    if(!$client->isAccessTokenExpired()){
-        header('Location: ' . base_url .'login.php?back=' . urlencode($CURRENT_URL));
-    }
+$fileNames = !empty($_GET['search_found']) ? $_GET['search_found'] : 'search_found';
+$searchFound = dirname(__FILE__) . '/../../uploads/blogger/posts/'.$_SESSION['user_id'] . '/'.$fileNames.'.csv';
+$file = new file();
+$search = $file->getFileContent($searchFound);
+$data = array();
+if(!empty($search)) {
+    $getPostSearch = 'https://www.googleapis.com/blogger/v3/blogs/'.$search[0]->bid.'/posts/'.$search[0]->bname.'?key=AIzaSyBM4KVC_25FUWH1auWDqsUfCcq30DFLkNM';
+    $str = file_get_contents($getPostSearch);
+    $data = json_decode($str);
 }
-include dirname(__FILE__) .'/../library/blogger.php';
-if(empty($_GET['search'])){
-function checkDuplicate($bid,$label='',$max=3,$start = 1){
-    if(!empty($label)) {
-        $link_blog = 'https://www.blogger.com/feeds/'.$bid.'/posts/summary/-/'.urlencode($label).'?max-results='.$max .'&start-index='.$start.'&alt=json-in-script';
-        $response = file_get_contents($link_blog);
-        $response = str_replace('gdata.io.handleScriptLoaded({', '{',$response);
-        $response = str_replace('}}]}});', '}}]}}',$response);
-        $html = json_decode($response);
-    } else {
-        $link_blog = 'https://www.blogger.com/feeds/'.$bid.'/posts/summary?max-results='.$max .'&start-index='.$start.'&alt=json-in-script';
-        $response = file_get_contents($link_blog);
-        $response = str_replace('gdata.io.handleScriptLoaded({', '{',$response);
-        $response = str_replace('}}]}});', '}}]}}',$response);
-        $html = json_decode($response);        
-    } 
-    return $html;
-}
-
-function getPaginationString($page = 1, $totalitems, $limit = 15, $adjacents = 1, $targetpage = "/", $pagestring = "?page=")
-{       
-    //defaults
-    if(!$adjacents) $adjacents = 1;
-    if(!$limit) $limit = 15;
-    if(!$page) $page = 1;
-    if(!$targetpage) $targetpage = "/";
-    
-    //other vars
-    $prev = $page - 1;                                  //previous page is page - 1
-    $next = $page + 1;                                  //next page is page + 1
-    $lastpage = ceil($totalitems / $limit);             //lastpage is = total items / items per page, rounded up.
-    $lpm1 = $lastpage - $page;                              //last page minus 1
-    $start_loop = $page;
-    if($lpm1 <= 5)
-    {
-     $start_loop = $lastpage - 5;
-    }
-    $end_loop = $start_loop + 4;
-    
-    $pagination = "";
-    $margin = '0';
-    $padding = '0';
-    if($lastpage > 1)
-    {   
-        $pagination .= "<ul class=\"pagination\">";
-        //previous button
-        if ($page > 1) 
-            $pagination .= "<li><a href=\"$targetpage$pagestring$prev\">← prev</a></li>";
-        else
-            $pagination .= "<li class=\"prev disabled\"><a href=\"#\">← prev</a></li>";    
-        
-        //pages 
-        if ($lastpage < 7 + ($adjacents * 2))   //not enough pages to bother breaking it up
-        {   
-            for($counter=$start_loop; $counter<=$end_loop; $counter++)
-            {
-                if ($counter == $page)
-                    $pagination .= "<li class=\"active\"><a href=\"#\">$counter</a></li>";
-                else
-                    $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $counter . "\">$counter</a></li>";                 
-            }
-        }
-        elseif($lastpage >= 7 + ($adjacents * 2))   //enough pages to hide some
-        {
-            //close to beginning; only hide later pages
-            if($page < 1 + ($adjacents * 3))        
-            {
-                for ($counter = 1; $counter < 4 + ($adjacents * 2); $counter++)
-                {
-                    if ($counter == $page)
-                        $pagination .= "<li class=\"active\"><a href=\"#\">$counter</a></li>";
-                    else
-                        $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $counter . "\">$counter</a></li>";                 
-                }
-                $pagination .= "<li class=\"elipses disabled\"><a href=\"#\">...</a></li>";
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $lpm1 . "\">$lpm1</a></li>";
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $lastpage . "\">$lastpage</a></li>";       
-            }
-            //in middle; hide some front and some back
-            elseif($lastpage - ($adjacents * 2) > $page && $page > ($adjacents * 2))
-            {
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . "1\">1</a></li>";
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . "2\">2</a></li>";
-                $pagination .= "<li class=\"elipses disabled\"><a href=\"#\">...</a></li>";
-                for ($counter = $page - $adjacents; $counter <= $page + $adjacents; $counter++)
-                {
-                    if ($counter == $page)
-                        $pagination .= "<li class=\"active\"><a href=\"#\">$counter</a></li>";
-                    else
-                        $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $counter . "\">$counter</a></li>";                 
-                }
-                $pagination .= "<li class=\"elipses disabled\"><a href=\"#\">...</a></li>";
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $lpm1 . "\">$lpm1</a></li>";
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $lastpage . "\">$lastpage</a></li>";       
-            }
-            //close to end; only hide early pages
-            else
-            {
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . "1\">1</a></li>";
-                $pagination .= "<li><a href=\"" . $targetpage . $pagestring . "2\">2</a></li>";
-                $pagination .= "<li class=\"elipses\"><a href=\"#\">...</a></li>";
-                for ($counter = $lastpage - (1 + ($adjacents * 3)); $counter <= $lastpage; $counter++)
-                {
-                    if ($counter == $page)
-                        $pagination .= "<li class=\"active\"><a href=\"#\">$counter</a></li>";
-                    else
-                        $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $counter . "\">$counter</a></li>";                 
-                }
-            }
-        }
-        
-        //next button
-        if ($page < $counter - 1) 
-            $pagination .= "<li><a href=\"" . $targetpage . $pagestring . $next . "\">next →</a></li>";
-        else
-            $pagination .= "<li class=\"disabled\"><a href=\"#\">next →</a></li>";
-        $pagination .= "</ul>\n";
-    }
-    
-    return $pagination;
-
-}
-$label = !empty($_GET['l']) ? $_GET['l'] : '';
-if(!empty($_GET['cat'])) {
-    if($_GET['cat'] == 1) {
-        unset($_SESSION['label']);
-    } else {
-        $_SESSION['label'] = $_GET['cat']; 
-    }       
-}
-$label = !empty($_SESSION['label']) ? $_SESSION['label'] : $label;
-$bid = !empty($_GET['b']) ? $_GET['b'] : default_blog;
-$max = !empty($_GET['max']) ? $_GET['max'] : 10;
-$page = !empty($_GET['page']) ? $_GET['page'] : 1;
-$data = checkDuplicate($bid,$label,$max,$page);
-
-$totalResults = $data->feed->{'openSearch$totalResults'}->{'$t'};
-$startIndex = $data->feed->{'openSearch$startIndex'}->{'$t'};
-$PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
-$category = $data->feed->category;
 ?>
 <!doctype html>
 <html>
 <head>
-  <?php include __DIR__.'/../head.php';?>
-<title>Set and retrieve localized metadata for a channel</title>
+  <?php include __DIR__.'/../../head.php';?>
+<title>Search found</title>
 <script type="text/javascript" src="<?php echo base_url;?>assets/plugins/datatables/jquery.dataTables.min.js"></script>
 </head>
 <body>
-  <?php include __DIR__.'/../header.php';?>
+  <?php include __DIR__.'/../../header.php';?>
       <div id="container">
         <div id="content">
             <div class="container">
-                <?php include __DIR__.'/../leftside.php';?>
+                <?php include __DIR__.'/../../leftside.php';?>
                 <div class="page-header">
                     <div class="page-title">
-                        <h3>Auto Post to Blogger and Facebook
+                        <h3>Search found
                         </h3>
                     </div>
                 </div>
@@ -173,7 +35,7 @@ $category = $data->feed->category;
                 <div class="col-md-12">
                     <div class="widget box">
                         <div class="widget-header">
-                            <h4><i class="icon-reorder"></i> Responsive Table <code>table-responsive</code></h4>
+                            <h4><i class="icon-reorder"></i> Search found</h4>
                             <div class="toolbar no-padding">
                                 <div class="btn-group"> <span class="btn btn-xs widget-collapse"><i class="icon-angle-down"></i></span> </div>
                             </div>
@@ -263,21 +125,16 @@ $category = $data->feed->category;
                                     </thead>
                                     <tbody role="alert" aria-live="polite" aria-relevant="all">
                                         <?php if(!empty($data)):
+                                            $content = $data->content;
+                                            preg_match('/<img.+src=[\'"](?P<src>.+?)[\'"].*>/i', $content, $image);
                                             $blogger = new blogger();
-                                         foreach ($data->feed->entry as $key => $value):
-                                            //echo '<pre>';
-                                            //var_dump($value);
-                                            //echo '</pre>';
-
-                                            
-                                            //label
                                             $labels = array();
                                             $labelLink = array();
                                             //$status = 'End';
-                                            foreach ($value->category as $categorys) {
-                                                $labels[] = $categorys->term;
-                                                $labelLink[] = '<a href="'.base_url.'blogger/index.php?cat='.urlencode($categorys->term).'"><span class="label label-info">'.$categorys->term . '</span></a>';
-                                                if(preg_match('/Continue/', $categorys->term)) {
+                                            foreach ($data->labels as $categorys) {
+                                                $labels[] = $categorys;
+                                                $labelLink[] = '<a href="'.base_url.'blogger/index.php?cat='.urlencode($categorys).'"><span class="label label-info">'.$categorys . '</span></a>';
+                                                if(preg_match('/Continue/', $categorys)) {
                                                     //$status = 'End';
                                                 }
                                             }
@@ -288,21 +145,17 @@ $category = $data->feed->category;
                                                 $status = '<span class="label label-success">End</span>';
                                             }
                                             //link
-                                            foreach ($value->link as $links) {
-                                                if($links->rel == 'alternate') {
-                                                    $link = $links->href;
-                                                }
-                                            }
-                                            $arr   = explode('-', $value->id->{'$t'});
-                                            $pid   = $arr[2];
+                                            $link = $data->url;
+                                            $pid   = $search[0]->bname;
+                                            $image = @$image['src'];
                                             ?><tr class="odd">
                                             <td class="checkbox-column  sorting_1">
                                                <input type="checkbox" id="itemid" name="itemid[]" class="uniform" value="<?php echo @$pid; ?>" />
                                             </td>
                                             <td class=" "><span class="responsiveExpander"></span>
                                                 <a href="<?php echo @$link;?>" target="_blank"><img src="<?php
-                                                $img = $blogger->resize_image($value->{'media$thumbnail'}->url,'72-c');
-                                                 echo $img;?>" style="float: left;max-width: 72px" class="img-rounded" />&nbsp;<?php echo @$value->title->{'$t'};?>
+                                                $img = $blogger->resize_image($image,'72-c');
+                                                 echo $img;?>" style="float: left;max-width: 72px" class="img-rounded" />&nbsp;<?php echo @$data->title;?>
                                             </a>
                                             </td>
                                             <td class=" "><?php echo implode(' ', $labelLink);?></td>
@@ -315,7 +168,7 @@ $category = $data->feed->category;
                                                 </button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <a href="<?php echo base_url; ?>blogger/add.php?id=<?php echo @$pid; ?>&title=<?php echo urlencode(@$value->title->{'$t'});?>&img=<?php echo $blogger->resize_image($value->{'media$thumbnail'}->url,'0');?>&l=<?php echo @urlencode($cat);?>"><i class="icon-edit"></i> Add & Edit</a>
+                                                        <a href="<?php echo base_url; ?>blogger/add.php?id=<?php echo @$pid; ?>&title=<?php echo urlencode(@$data->title);?>&img=<?php echo $blogger->resize_image($image,'0');?>&l=<?php echo @urlencode($cat);?>"><i class="icon-edit"></i> Add & Edit</a>
                                                     </li>
                                                     <li>
                                                         <a href="<?php echo base_url; ?>blogger/edit.php?id=<?php echo @$pid; ?>"><i class="icon-edit"></i> Edit</a>
@@ -328,22 +181,18 @@ $category = $data->feed->category;
                                                     </li>
                                                 </ul>
                                             </td>
-                                        </tr><?php endforeach;?>                                      
+                                        </tr>                                      
                                         <?php endif;?>                                      
                                     </tbody>
                                 </table>
                                 <div class="row">
                                     <div class="dataTables_footer clearfix">
                                         <div class="col-md-6">
-                                            <div class="dataTables_info" id="DataTables_Table_0_info">Showing <?php echo $PerPage;?> to <?php echo ($PerPage * $page);?> of <?php echo $totalResults;?> entries</div>
+                                            <div class="dataTables_info" id="DataTables_Table_0_info">Showing 0 to 0 of 0 entries</div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="dataTables_paginate paging_bootstrap">
-                                                <?php
-                                                $targetpage = base_url . 'blogger/index.php';
-                                                $pagestring = '?page=';
-                                                $adjacents = 2;
-                                                 echo getPaginationString($page, $totalResults, $PerPage, $adjacents, $targetpage, $pagestring);?>
+                                                
                                             </div>
                                         </div>
                                     </div>
@@ -420,6 +269,3 @@ $category = $data->feed->category;
     </script>
 </body>
 </html>
-<?php } else {
-    include 'search/index_found.php';
-}?>

@@ -62,17 +62,26 @@ function getPost($data,$keyWord){
 
 $file = new file();
 if(!empty($_GET['start'])) {
-	$jsonTxt = dirname(__FILE__) . '/../uploads/files/blogs/blogid.csv';
-	$getBlogId = $file->getFileContent($jsonTxt);
+	$_SESSION['to_post_id'] = !empty($_GET['frompost']) ? $_GET['frompost'] : 'search_found';
 	$data = array();
 	$search = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/search.csv';
-	foreach ($getBlogId as $value) {
-		$pos = strpos($value->bid, default_blog);
-		if ($pos === false) {
-			$data[] = array($value->bid,0);
-        } else {
-            $data[] = array($value->bid,1); 
-        }
+	$fileNames = $_SESSION['to_post_id'];
+		$DsearchFound = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/'.$fileNames.'.csv';
+	@unlink($DsearchFound);
+	@unlink($search);
+	if(!empty($_GET['action']) && $_GET['action'] == '1') {
+		$data[] = array(default_blog,0);
+	} else {
+		$jsonTxt = dirname(__FILE__) . '/../uploads/files/blogs/blogid.csv';
+		$getBlogId = $file->getFileContent($jsonTxt);
+		foreach ($getBlogId as $value) {
+			$pos = strpos($value->bid, default_blog);
+			if ($pos === false) {
+				$data[] = array($value->bid,0);
+	        } else {
+	            $data[] = array($value->bid,1); 
+	        }
+		}
 	}
 	$fp = fopen($search, 'w');
     foreach ($data as $fields) {
@@ -88,7 +97,7 @@ if(!empty($_GET['start'])) {
 		}
 	}
 
-	$_SESSION['to_post_id'] = !empty($_GET['frompost']) ? $_GET['frompost'] : 'search_found';
+	
 	$keyWordA = $_GET['keyword'];
 	$keyWord = urlencode($keyWordA);
 	echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&keyword='.$keyWord.'&bid=' . $bid . '&sart=1#1";</script>';
@@ -109,13 +118,12 @@ if(!empty($_GET['search']) && !empty($_GET['bid'])) {
 			var setnew = 500 + Number(moreNum);
 			window.location = "<?php echo base_url;?>blogger/search.php?search=1&bid=<?php echo $blogID;?>&keyword=<?php echo $keyWord;?>&sart="+setnew+"#" + setnew;
 		}, 1000);
-
 	</script>
 	<?php elseif(!empty($post) && empty($post['runout'])):
 		$fileNames = $_SESSION['to_post_id'];
 		$searchFound = dirname(__FILE__) . '/../uploads/blogger/posts/'.$_SESSION['user_id'] . '/'.$fileNames.'.csv';
 		$checkLine = $file->cleanDuplicatePost($searchFound,$blogID);
-		if(empty($checkLine)) {
+		if(empty($checkLine)) { 
 			$handle = fopen($searchFound, "a");
 	        fputcsv($handle, array($blogID,$post['pid']));
 	        fclose($handle);
@@ -154,8 +162,13 @@ if(!empty($_GET['search']) && !empty($_GET['bid'])) {
 		if(!empty($next)) {
 			echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&bid=' . $next . '&keyword='.$keyWord.'&sart=1#1";</script>';
 		} else {
-			header('Location: ' . base_url . 'blogger/add.php?id='.$_SESSION['to_post_id']);
+			if($_SESSION['to_post_id'] == 'search_found') {
+				header('Location: ' . base_url . 'blogger/index.php?search='.$_SESSION['to_post_id']);
 			exit();
+			} else {
+				header('Location: ' . base_url . 'blogger/add.php?id='.$_SESSION['to_post_id']);
+				exit();
+			}
 		}		
 	    /*End start search new blog*/
 	else :
@@ -201,8 +214,13 @@ if(!empty($_GET['search']) && !empty($_GET['bid'])) {
 		if(!empty($gnext)) {
 			echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/search.php?search=1&bid=' . $gnext . '&keyword='.$keyWord.'&sart=1#1";</script>';
 		} else {
-			header('Location: ' . base_url . 'blogger/add.php?id='.$_SESSION['to_post_id']);
+			if($_SESSION['to_post_id'] == 'search_found') {
+				header('Location: ' . base_url . 'blogger/index.php?search='.$_SESSION['to_post_id']);
 			exit();
+			} else {
+				header('Location: ' . base_url . 'blogger/add.php?id='.$_SESSION['to_post_id']);
+				exit();
+			}
 		}
 	    /*End start search new blog*/
 	 endif;?>
