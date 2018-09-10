@@ -125,7 +125,8 @@ if(!empty($search)) {
                                     </thead>
                                     <tbody role="alert" aria-live="polite" aria-relevant="all">
                                         <?php if(!empty($data)):
-                                            $content = $data->content;
+                                            $content = @$data->content;
+                                            if(!empty($content)):
                                             preg_match('/<img.+src=[\'"](?P<src>.+?)[\'"].*>/i', $content, $image);
                                             $blogger = new blogger();
                                             $labels = array();
@@ -182,7 +183,11 @@ if(!empty($search)) {
                                                 </ul>
                                             </td>
                                         </tr>                                      
-                                        <?php endif;?>                                      
+                                        <?php else:?>
+                                            <tr>
+                                                <td>Search not found</td>
+                                            </tr>
+                                        <?php endif; endif;?>                                      
                                     </tbody>
                                 </table>
                                 <div class="row">
