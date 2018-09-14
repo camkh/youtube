@@ -26,8 +26,6 @@ if(!empty($_POST['blogID']) && !empty($_POST['url'])) {
     $service = new Google_Service_Blogger($client);
     $posts   = new Google_Service_Blogger_Post();
     $blogger = new blogger();
-
-    $postBlogs = array();
     for ($i = 0; $i < count($_POST['url']); $i++) {      
       $vid = $blogger->get_video_id($_POST['url'][$i]);
       $vid = $vid['vid'];
@@ -44,32 +42,20 @@ if(!empty($_POST['blogID']) && !empty($_POST['url'])) {
       /*prepare post*/
       $strTime = strtotime(date("Y-m-d H:i:s"));
       $bodytext = '<img class="thumbnail noi" style="text-align:center" src="'.$uploadMediaFile.'"/><div id="someAdsA"></div><iframe width="100%" height="280" src="https://www.youtube.com/embed/'.$vid.'" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe><div id="someAds"></div>';
-      $title = (string) $_POST['title'][$i] . ' || ' .$strTime;
       $dataContent          = new stdClass();
       $dataContent->setdate = false;        
       $dataContent->editpost = false;
       $dataContent->pid      = 0;
       $dataContent->customcode = '';
       $dataContent->bid     = $bid;
-      $dataContent->title    = $title;        
+      $dataContent->title    = (string) $_POST['title'][$i] . ' || ' .$strTime;        
       $dataContent->bodytext = $bodytext;
       $dataContent->label    = $_SESSION['blabel'];
       $getpost               = $blogger->blogger_post($client,$dataContent);
       /*end prepare post*/
-      $postBlogs[] = array(
-          'id'=> trim($strTime), 
-          'url'=> $link,
-          'title'=> $tile,
-          'img' => $uploadMediaFile,
-          'status'=>0,
-          'groups' => '',
-          'bid' => $getpost
-      ); 
+
       //var_dump($_POST['url'][$i] . ' title: ' . $_POST['title'][$i]);
     }
-    $response['bitly'] = !empty($_SESSION['short_url']) ? 1 : 0;
-    $response['posts'] = $postBlogs;
-    $file->csvstr($response);
     header('Location: '.base_url.'share.php?do=share');
   }
 

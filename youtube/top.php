@@ -2,6 +2,8 @@
 date_default_timezone_set('Asia/Phnom_Penh');
 define("base_url", "http://localhost/youtube/youtube/");
 define("default_blog", "7271011833334695575");
+define('BITLY_USERNAME', 'o_19ln460ta4');
+define('BITLY_API_KEY', 'R_d25cf36a6098484cbdec62de87af48e9');
 //for current url
 $CURRENT_URL = (!empty($_SERVER['HTTPS'])) ? "https://" . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'] : "http://" . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
 session_start();

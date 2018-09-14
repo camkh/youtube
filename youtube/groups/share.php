@@ -11,6 +11,38 @@ function checkDuplicate($bid,$label='',$max=3){
     } 
     return $html->entry;
 }
+/*create CSV file*/
+function csvstr($list = array(),$update='')
+{
+    date_default_timezone_set('Asia/Phnom_Penh');
+    if(!empty($_SESSION['blabel'])) {
+        $permarklink = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $_SESSION['blabel']);
+        $permarklink = str_replace(",", '', $permarklink);
+        $cat_slug = preg_replace("/[[:space:]]/", "-", $permarklink);
+        $upload_path = "C:\\myImacros/".$_SESSION['blogID'].'/'.$cat_slug.'/';
+    } else {
+        $upload_path = "C:\\myImacros/".$_SESSION['blogID'].'/';
+    }    
+    $file_name = date("m-d-Y").'_file.json';
+    if (!file_exists($upload_path)) {
+        mkdir($upload_path, 0700, true);
+    }
+    if (!file_exists($upload_path.$file_name)) {
+        $f = fopen($upload_path.$file_name, 'w');
+        fwrite($f, json_encode($list));
+        fclose($f);
+    } else {
+        $setList = checkIdExist($list['posts'],$upload_path.$file_name);
+        $f = fopen($upload_path.$file_name, 'w');
+        fwrite($f, json_encode($setList));
+        fclose($f);
+    }
+    if (!empty($update)) {
+        $f = fopen($upload_path.$file_name, 'w');
+        fwrite($f, json_encode($list));
+        fclose($f);
+    }
+}
 
 function checkIdExist($data = array(),$file)
 {
@@ -51,6 +83,8 @@ function doShare()
         $response = array();
         $posts = array();
         $file = new file();
+        $jsonTxt = "C:\\myImacros/".$_SESSION['blogID'].'/'.$cat_slug.'/';
+        $getGroupsId = $file->getFileContent($jsonTxt);
         foreach ($checkPost as $value) {
             $tCheck = explode('||', $value->title);
             if(!empty($tCheck[1])) {
@@ -60,35 +94,24 @@ function doShare()
                     if(!empty($tile)) {
                         $link = (string) $value->link[4]['href'];
                         if(!empty($short_url)) {
-                            $link = $file->get_bitly_short_url( $link, BITLY_USERNAME, BITLY_API_KEY );
+                            $link = $file->get_bitly_short_url ( $link, BITLY_USERNAME, BITLY_API_KEY );
                         }                        
                         $posts[] = array(
                             'id'=> trim($tCheck[1]), 
                             'url'=> $link,
                             'title'=> $tile,
                             'status'=>0,
-                            'groups' => '',
+                            'groups' => $groups,
                         );
                     }
                 } else if(!empty($value->link[2]['href'])) {
-                    $link = (string) $value->link[2]['href'];
-                    if(!empty($short_url)) {
-                            $link = $file->get_bitly_short_url( $link, BITLY_USERNAME, BITLY_API_KEY );
-                    }
-                    $posts[] = array(
-                        'id'=> trim($tCheck[1]), 
-                        'url'=> $link,
-                        'title'=> trim($tCheck[0]),
-                        'status'=>0,
-                        'groups' => '',
-                    );
+                    $posts[] = array('id'=> trim($tCheck[1]), 'url'=> (string) $value->link[2]['href'],'title'=> trim($tCheck[0]),'status'=>0);
                 }
             }
             $i++;
         }
-        $response['bitly'] = !empty($_SESSION['short_url']) ? 1 : 0;
         $response['posts'] = $posts;
-        $file->csvstr($response);
+        csvstr($response);
         /*End add to list first*/
         /*Get post to share*/
         return getPost();
