@@ -300,18 +300,18 @@ if(!empty($_POST['blogID'])) {
         }
         
         $( document ).ready(function() { 
-            $('#defaultCountdown').countdown({until: '+0h +7m +0s', format: 'HMS'}); 
+            $('#defaultCountdown').countdown({until: '+0h +10m +0s', format: 'HMS'}); 
 
             setInterval(function() {            
                 closeOnLoad("<?php echo base_url;?>login.php");
-              }, 4200);   
+              }, 120000);   
           //1000 = 1 second      
 
 
             var elem = document.getElementById("timer");   
               var width = 1;
               //600 = 1minute
-              var id = setInterval(frame, 4200);
+              var id = setInterval(frame, 6000);
               function frame() {
                 if (width >= 100) {
                   clearInterval(id);
