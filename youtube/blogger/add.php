@@ -1,10 +1,13 @@
 <?php
 include dirname(__FILE__) .'/../top.php';
 if (empty($_SESSION['tokenSessionKey'])) {
+    header('Location: ' . base_url .'login.php?back=' . urlencode($CURRENT_URL));
+}
+if (!empty($_SESSION['tokenSessionKey'])) {
     $client = new Google_Client();
     $client->setAccessToken($_SESSION['tokenSessionKey']);
     if($client->isAccessTokenExpired()){
-        header('Location: ' . base_url .'login.php?back=' . urlencode($CURRENT_URL));
+        header('Location: ' . base_url .'login.php?renew=1&back=' . urlencode($CURRENT_URL));
     }
 }
 function checkDuplicate($bid,$label='',$max=3,$start = 1){
