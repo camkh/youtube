@@ -6,7 +6,7 @@ if (empty($_SESSION['tokenSessionKey'])) {
 if (!empty($_SESSION['tokenSessionKey'])) {
     $client = new Google_Client();
     $client->setAccessToken($_SESSION['tokenSessionKey']);
-    if($client->isAccessTokenExpired()){
+    if($client->isAccessTokenExpired()) {
         header('Location: ' . base_url .'login.php?renew=1&back=' . urlencode($CURRENT_URL));
     }
 }

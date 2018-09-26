@@ -62,9 +62,6 @@ function uploadImageFile() { // Note: GD library is required for this function
                         /* resize */
                         include dirname(__FILE__) .'/../library/ChipVN/Loader.php';
                         \ChipVN\Loader::registerAutoLoad();
-                        if ($resize_to > 0) {
-                            \ChipVN\Image::resize($sTempFileName, $resize_to, 0);
-                        }
 
                         // create a new true color image
                         $vDstImg = @imagecreatetruecolor( $iWidth, $iHeight );
@@ -78,8 +75,32 @@ function uploadImageFile() { // Note: GD library is required for this function
                         // output image to file
                         imagejpeg($vDstImg, $sResultFileName, $iJpgQuality);
                         @unlink($sTempFileName);
+                        
+                        if ($resize_to > 0) {
+                            /*resize image*/
+                            $maxDim = $resize_to;
+                            $file_name = $sResultFileName;
+                            list($width, $height, $type, $attr) = getimagesize( $file_name );
+                            if ( $width < $maxDim || $height < $maxDim ) {
+                                $target_filename = $file_name;
+                                $ratio = $width/$height;
+                                if( $ratio > 1) {
+                                    $new_width = $maxDim;
+                                    $new_height = $maxDim/$ratio;
+                                } else {
+                                    $new_width = $maxDim*$ratio;
+                                    $new_height = $maxDim;
+                                }
 
-
+                                $src = imagecreatefromstring( file_get_contents( $file_name ) );
+                                $dst = imagecreatetruecolor( $new_width, 415 );
+                                imagecopyresampled( $dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
+                                imagedestroy( $src );
+                                imagejpeg( $dst, $target_filename ); // adjust format as needed
+                                imagedestroy( $dst );
+                            }
+                            /*end resize image*/
+                        }
                         /* get some option*/
 
                         $hotImg = false;
