@@ -93,9 +93,9 @@ function fileSelectHandler() {
                 bgColor: 'white',
                 addClass: 'jcrop-normal',
                 minSize: [200, 104], // min crop size
-                aspectRatio : 16 / 9, // keep aspect ratio 1:1
-                boxWidth:1200,
-                boxHeight:630,
+                aspectRatio : 16 / 8.3, // keep aspect ratio 1:1
+                boxWidth:800,
+                boxHeight:415,
                 onChange: updateInfo,
                 onSelect: updateInfo,
             }, function(){
@@ -106,7 +106,7 @@ function fileSelectHandler() {
 
                 // Store the Jcrop API in the jcrop_api variable
                 jcrop_api = this;
-                jcrop_api.setSelect([0,0,400,210]);
+                jcrop_api.setSelect([0,0,400,208]);
                 jcrop_api.setOptions({ bgFade: true });
                 jcrop_api.ui.selection.addClass('jcrop-selection');
             });

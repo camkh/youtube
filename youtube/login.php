@@ -46,7 +46,11 @@ if (isset($_GET['code'])) {
     }
   }
   if(!empty($_GET['back'])) {
-    $back = $_GET['back'];
+    $_SESSION['back'] = $_GET['back'];
+  } 
+
+  if(!empty($_SESSION['back'])) {
+    $back = $_SESSION['back'];
     header('Location: ' . $back);
   } else {
     header('Location: ' . base_url . 'index.php');
