@@ -154,6 +154,42 @@ function getPost($id='')
     }
 }
 
+function getPostShow()
+{
+    $dataShare = array();
+    if(!empty($_SESSION['blogID'])) {
+        $bid = $_SESSION['blogID'];
+        //$upload_path = "C:\\myImacros/".$_SESSION['blogID'].'/';
+        if(!empty($_SESSION['blabel'])) {
+            $permarklink = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $_SESSION['blabel']);
+            $permarklink = str_replace(",", '', $permarklink);
+            $cat_slug = preg_replace("/[[:space:]]/", "-", $permarklink);
+            $upload_path = "C:\\myImacros/".$_SESSION['blogID'].'/'.$cat_slug.'/';
+        } else {
+            $upload_path = "C:\\myImacros/".$_SESSION['blogID'].'/';
+        }
+
+        $file_name = date("m-d-Y").'_file.json';
+        $str = file_get_contents($upload_path.$file_name);
+        $json = json_decode($str);
+        $i=0;
+        $object = new stdClass();
+        foreach ($json->posts as $key => $value) {
+            $i++;
+                $dataShare[] = array(
+                    'id' => $value->id,
+                    'url' => $value->url,
+                    'title' => $value->title,
+                    'status' => $value->status,
+                );
+                // $dataShare[]['url'] = $value->url;
+                // $dataShare[]['title'] = $value->title;
+                // $dataShare[]['id'] = $value->id;
+        }
+    }
+    return (object) $dataShare;
+}
+
 function refresh()
 {
     /**
@@ -235,10 +271,17 @@ if(!empty($_POST['blogID'])) {
 <head>
     <?php include 'head.php';?>
     <title>Auto Post to Blogger and Facebook</title>
+    <link href="<?php echo base_url; ?>assets/css/plugins/nestable.css" rel="stylesheet" type="text/css" />
+    <link href="<?php echo base_url; ?>assets/css/plugins/bootstrap-switch.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="<?php echo base_url; ?>assets/plugins/jquery-ui/jquery.countdown.css">
     <script type="text/javascript" src="<?php echo base_url; ?>assets/js/libs/jquery.min.js"></script>
     <script type="text/javascript" src="<?php echo base_url; ?>plugins/jquery-ui/jquery-ui-1.10.2.custom.min.js"></script>
     <script type="text/javascript" src="<?php echo base_url; ?>bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="<?php echo base_url; ?>assets/js/libs/lodash.compat.min.js"></script>
+    <script src="<?php echo base_url; ?>assets/plugins/jquery-ui/jquery.plugin.min.js"></script>
+    <script src="<?php echo base_url; ?>assets/plugins/jquery-ui/jquery.countdown.min.js"></script>
+    <script type="text/javascript" src="<?php echo base_url; ?>assets/plugins/nestable/jquery.nestable.min.js"></script>
+    <script type="text/javascript" src="<?php echo base_url; ?>assets/plugins/bootstrap-switch/bootstrap-switch.min.js"></script>
     <?php if(!empty($_GET['do']) && $_GET['do'] == 'wait'):?>
         <script type="text/javascript">
         //var myVar = setInterval(myTimer, 100000);
@@ -257,16 +300,18 @@ if(!empty($_POST['blogID'])) {
         }
         
         $( document ).ready(function() { 
-        setInterval(function() {            
-            closeOnLoad("<?php echo base_url;?>login.php");
-          }, 30000);   
+            $('#defaultCountdown').countdown({until: '+0h +10m +0s', format: 'HMS'}); 
+
+            setInterval(function() {            
+                closeOnLoad("<?php echo base_url;?>login.php");
+              }, 120000);   
           //1000 = 1 second      
 
 
             var elem = document.getElementById("timer");   
               var width = 1;
               //600 = 1minute
-              var id = setInterval(frame, 9000);
+              var id = setInterval(frame, 6000);
               function frame() {
                 if (width >= 100) {
                   clearInterval(id);
@@ -277,8 +322,51 @@ if(!empty($_POST['blogID'])) {
                   elem.style.width = width + '%'; 
                   elem.innerHTML = width + '%'; 
                 }
-              }
+              };
+
+
+            var list = $('#nestable_list_1').nestable('serialize');
+            var updateOutput = function(list)
+            {
+                
+                var dataj = window.JSON.stringify(list.nestable('serialize'));
+                $('#nestable_list_1_output').val(dataj);
+                // var list   = e.length ? e : $(e.target),
+                //     output = list.data('output');
+                // if (window.JSON) {
+                //     output.val(window.JSON.stringify(list.nestable('serialize')));//, null, 2));
+                //     var dataj = window.JSON.stringify(list.nestable('serialize'));
+                //     /*save to file*/
+                //     $.ajax
+                //     ({
+                //         type: "POST",
+                //         //the url where you want to sent the userName and password to
+                //         url: '<?php base_url;?>blogger/save_csv.php',
+                //         dataType: 'json',
+                //         async: false,
+                //         //json object to sent to the authentication url
+                //         data: {'posts': dataj},
+                //         success: function () {
+
+                //         alert("Thanks!"); 
+                //         }
+                //     })
+                //     // $.post("<?php base_url;?>blogger/save_csv.php",
+                //     // {
+                //     //     name: dataj
+                //     // },
+                //     // function(data, status){
+                //     //     alert("Data: " + data + "\nStatus: " + status);
+                //     // });
+                //     /*End save to file*/
+                // } else {
+                //     output.val('JSON browser support required for this demo.');
+                // }
+            };
+            updateOutput(list);
+            //$('#nestable_list_1').on('change', updateOutput);
         });
+
 
 function closeOnLoad(myLink)
 {
@@ -291,10 +379,18 @@ function closeOnLoad(myLink)
             2000
             );
   return false;
-}        
+}      
         </script>
               
     <?php endif;?>  
+<style type="text/css">
+#defaultCountdown { width: 340px; height: 100px; font-size: 20pt;margin-bottom: 20px}
+.dd3-handle:before{
+    top: 9px;
+    font-size: 30px
+}
+.dd3-content{padding-left: 50px}
+</style>
 </head>   
 <body class="">
     <?php include 'header.php';?>
@@ -312,12 +408,48 @@ function closeOnLoad(myLink)
                     <div class="col-md-12">
                         <div class="widget box">
                             <div class="widget-header">
-                                <h4><i class="icon-reorder"></i> តើអ្នកចង់ Share ប្លុកគ៍ណាដែរ?</h4>
+                                <h4><i class="icon-reorder"></i> 
+                                    <?php if(!empty($_GET['do']) && $_GET['do'] == 'wait'):?>
+                                        រង់ចាំ ប៉ុស្តិ៍បន្ទាប់
+                                    <?php else:?>
+                                    តើអ្នកចង់ Share ប្លុកគ៍ណាដែរ?
+                                    <?php endif;?>
+                                </h4>
                             </div>
                             <div class="widget-content">
+                                <!-- waiting time -->
                                 <?php if(!empty($_GET['do']) && $_GET['do'] == 'wait'):?>
+                                    <center>
+                                        <div>Blog ID: <?php echo @$_SESSION['blogID'];?> || Label: <?php echo @$_SESSION['blabel'];?>|| Delay: <?php echo @$_SESSION['delay'];?></div>
+                                        <div id="defaultCountdown"></div></center>
                                     <div class="progress"> <div id="timer" class="progress-bar progress-bar-info" style="width: 0%"></div> </div>
+                                    <form class="form-horizontal row-border" id="setblog" method="post">
+                                    <textarea id="nestable_list_1_output" class="form-control updatemenu" name="updatemenu" style="display: initial;"></textarea>
+                                </div>
+                                <div class="dd" id="nestable_list_1">
+                                    <ol class="dd-list">
+                                        <?php
+                                        $waitPost = getPostShow();
+                                        $i=1;
+                                        foreach ($waitPost as $key => $wp):
+                                            $getW = (object) $wp;
+                                            ?>
+                                            <li class="dd-item dd3-item" data-id="<?php echo $getW->id; ?>" data-title="<?php echo $getW->title; ?>" data-url="<?php echo $getW->url; ?>" data-status="<?php echo $getW->status; ?>">
+                                                <div class="dd-handle dd3-handle" style="height: 40px;width: 40px"></div>
+                                                <div class="dd3-content" style="height: 40px">
+                                                    <a class='btn btn-sm pull-right removelist' data='<?php echo $getW->id; ?>'> <?php echo ($getW->status == 1) ? 'ផុសរួច' : 'មិនទាន់ប៉ុស្តិ៍'; ?>
+                                                    ស្ថានភាពប៉ុស្តិ៍
+                                                    <div class="make-switch switch-mini"  data-off="danger" data-on="success"><input type="checkbox" <?php echo ($getW->status == 1) ? '' : 'checked'; ?> class="toggle" onclick="updateOutput();"/> </div>
+                                                </a>
+                                                    <a href="<?php echo $getW->url; ?>" target="_blank"><?php echo $getW->title; ?></a></div> 
+                                            </li>
+                                    <?php $i++; endforeach;?>
+                                </ol>
+                            </div>
+                                    </form>
+                                    <!-- End waiting time -->
                                 <?php else:?>
+
                                 <form class="form-horizontal row-border" id="setblog" method="post">
                                     <div class="form-group"> <label class="col-md-3 control-label">Blog ID:</label>
                                         <div class="col-md-9"> <input type="text" class="form-control required" name="blogID" placeholder="Blog ID" required> </div>

@@ -7,6 +7,8 @@ if (empty($_SESSION['tokenSessionKey'])) {
         header('Location: ' . base_url .'login.php?back=' . urlencode($CURRENT_URL));
     }
 }
+include dirname(__FILE__) .'/../library/blogger.php';
+if(empty($_GET['search'])){
 function checkDuplicate($bid,$label='',$max=3,$start = 1){
     if(!empty($label)) {
         $link_blog = 'https://www.blogger.com/feeds/'.$bid.'/posts/summary/-/'.urlencode($label).'?max-results='.$max .'&start-index='.$start.'&alt=json-in-script';
@@ -145,7 +147,6 @@ $totalResults = $data->feed->{'openSearch$totalResults'}->{'$t'};
 $startIndex = $data->feed->{'openSearch$startIndex'}->{'$t'};
 $PerPage = $data->feed->{'openSearch$itemsPerPage'}->{'$t'};
 $category = $data->feed->category;
-include dirname(__FILE__) .'/../library/blogger.php';
 ?>
 <!doctype html>
 <html>
@@ -181,7 +182,7 @@ include dirname(__FILE__) .'/../library/blogger.php';
                             <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper form-inline" role="grid">
                                 <div class="row">
                                     <div class="dataTables_header clearfix">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div id="DataTables_Table_0_length" class="dataTables_length">
                                                 <label>                                    
                                                     <select name="DataTables_Table_0_length" class="form-control">
@@ -201,11 +202,10 @@ include dirname(__FILE__) .'/../library/blogger.php';
                                                             All
                                                         </option>
                                                     </select>
-                                                    records per page
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label>                                    
                                                 <select id="input17" class="select2-select-00 col-md-12 full-width-fix" onchange="onChageLabel(this.value)">
                                                     <option value="1">
@@ -220,18 +220,20 @@ include dirname(__FILE__) .'/../library/blogger.php';
                                                 </select>
                                             </label>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <div class="dataTables_filter" id="DataTables_Table_0_filter">
                                                 
-                                                <form method="post">
+                                                <form method="get" action="<?php echo base_url;?>blogger/search.php">
                                                     <a class="btn btn-info" href="post/searchbloggerbost"><i class="icon-search"></i></a>
                                                 <label>
+                                                    <input type="hidden" name="start" value="1">
+                                                    <input type="hidden" name="action" value="1">
                                                     <div class="input-group">
                                                         <span class="input-group-addon">
                                                             <i class="icon-search">
                                                             </i>
                                                         </span>
-                                                        <input type="text" aria-controls="DataTables_Table_0" class="form-control" name="filtername" />
+                                                        <input type="text" aria-controls="DataTables_Table_0" class="form-control pull-right" name="keyword" />
                                                     </div>
                                                 </label>
                                                 </form>
@@ -418,3 +420,6 @@ include dirname(__FILE__) .'/../library/blogger.php';
     </script>
 </body>
 </html>
+<?php } else {
+    include 'search/index_found.php';
+}?>

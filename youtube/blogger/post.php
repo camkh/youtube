@@ -204,7 +204,7 @@ if(!empty($_GET['do']) && $_GET['do'] == 'post' && empty($_GET['id'])) {
                                         <label for="imageid">Title</label>
                                     </div>
                                     <div class="col-md-10">
-                                        <input type="text" class="form-control" name="title" id="title" value="<?php echo @$getPost->title?> || part <?php echo count($getPost->list);?>" />
+                                        <input type="text" class="form-control" name="title" id="title" value="<?php echo @$getPost->title?>" />
                                     </div>                                                            
                                 </div>                         
                             </div>                         

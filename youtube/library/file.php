@@ -31,6 +31,38 @@ class file {
         }
     }
 
+    /*create CSV posts file*/
+    public function csvstr($list = array(),$update='')
+    {
+        date_default_timezone_set('Asia/Phnom_Penh');
+        if(!empty($_SESSION['blabel'])) {
+            $permarklink = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $_SESSION['blabel']);
+            $permarklink = str_replace(",", '', $permarklink);
+            $cat_slug = preg_replace("/[[:space:]]/", "-", $permarklink);
+            $upload_path = "C:\\myImacros/".$_SESSION['blogID'].'/'.$cat_slug.'/';
+        } else {
+            $upload_path = "C:\\myImacros/".$_SESSION['blogID'].'/';
+        }    
+        $file_name = date("m-d-Y").'_file.json';
+        if (!file_exists($upload_path)) {
+            mkdir($upload_path, 0700, true);
+        }
+        if (!file_exists($upload_path.$file_name)) {
+            $f = fopen($upload_path.$file_name, 'w');
+            fwrite($f, json_encode($list));
+            fclose($f);
+        } else {
+            $setList = checkIdExist($list['posts'],$upload_path.$file_name);
+            $f = fopen($upload_path.$file_name, 'w');
+            fwrite($f, json_encode($setList));
+            fclose($f);
+        }
+        if (!empty($update)) {
+            $f = fopen($upload_path.$file_name, 'w');
+            fwrite($f, json_encode($list));
+            fclose($f);
+        }
+    }
     public function uploadMedia($file_path)
        {
         $imgName = $file_path;
@@ -165,4 +197,28 @@ class file {
        }
        return null;
     }
+
+    /* returns the shortened url */
+    function get_bitly_short_url($url, $login, $appkey, $format = 'txt') {
+        $connectURL = 'http://api.bit.ly/v3/shorten?login=' . $login . '&apiKey=' . $appkey . '&uri=' . urlencode ( $url ) . '&format=' . $format;
+        return $this->curl_get_result ( $connectURL );
+    }
+    
+    /* returns expanded url */
+    function get_bitly_long_url($url, $login, $appkey, $format = 'txt') {
+        $connectURL = 'http://api.bit.ly/v3/expand?login=' . $login . '&apiKey=' . $appkey . '&shortUrl=' . urlencode ( $url ) . '&format=' . $format;
+        return $this->curl_get_result ( $connectURL );
+    }
+    
+    /* returns a result form url */
+    function curl_get_result($url) {
+        $ch = curl_init ();
+        $timeout = 5;
+        curl_setopt ( $ch, CURLOPT_URL, $url );
+        curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
+        curl_setopt ( $ch, CURLOPT_CONNECTTIMEOUT, $timeout );
+        $data = curl_exec ( $ch );
+        curl_close ( $ch );
+        return $data;
+    }    
 }
