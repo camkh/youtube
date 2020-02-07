@@ -277,10 +277,13 @@ if (!empty($_POST['idpost']) && !empty($_POST['keyword'])) {
                                                 ;
                                             }
                                             foreach ($getEditBlogId as $value):
+
+                                                if (!empty($value) && empty(($value->bid == 'status' || $value->bid == 'url'))):
                                              ?>
                                                 <label class="checkbox"><input type="checkbox" value="<?php echo trim($value->bid);?>" name="idblog[]" checked/> <?php echo searchForId($value->bid, $arrSearch);?></label>
                                                 <input type="hidden" value="<?php echo trim($value->bname);?>" name="idpost[]"/>
                                                 <?php  
+                                                endif;
                                                 $i++;
                                             endforeach;
                                         else:

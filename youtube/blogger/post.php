@@ -119,6 +119,11 @@ $blogger = new blogger();
                         array_push($countPosted, $bids->bid);
                     }                    
                 }
+                if ($i == $totalPosts) {
+                    // $handle = fopen($uploadPath.$_SESSION['post_id'].'.csv', "a");
+                    // fputcsv($handle, array('url',$_SESSION['url_id']));
+                    // fclose($handle);
+                }
             }         
             $dataPost = array(
                 'blogid' => $bidArr,
@@ -132,8 +137,18 @@ $blogger = new blogger();
             $jsonPost = $file->json($upload_path,$file_name, $dataPost);
             if(!empty($postNext)) {               
                 echo '<script type="text/javascript">window.location = "' . base_url . 'blogger/post.php?do=post&id=' . $postNext . '";</script>';
+                exit();
             }
             if(1 == count($countPosted)) {
+                if(preg_match('/Continue/', $json->label)) {
+                    $status = 'Continue';
+                } else {
+                    $status = 'End';
+                }
+                $handle = fopen($uploadPath.$_SESSION['post_id'].'.csv', "a");
+                fputcsv($handle, array('url',$_SESSION['url_id']));
+                fputcsv($handle, array('status',$status));
+                fclose($handle);
                 header('Location: ' . base_url . 'blogger/index.php');
             }           
             exit();

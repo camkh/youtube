@@ -42,8 +42,9 @@ function getBlogId()
 function sitekmobilemovie($param = '', $title = '', $thumb = '', $post_id = '', $videotype = '') {
 }
 /* form */
+include dirname(__FILE__) .'/../library/blogger.php';
+$site = new blogger();
 if (!empty($_POST['submit'])) {
-    include dirname(__FILE__) .'/../library/blogger.php';
     $videotype = '';
     $id = !empty($_POST['edit_post_id']) ? $_POST['edit_post_id'] : '';
     $xmlurl    = @$_POST['blogid'];
@@ -53,12 +54,13 @@ if (!empty($_POST['submit'])) {
     if (preg_match('/kmobilemovie/', $xmlurl)) {
         $xmlurl = sitekmobilemovie($xmlurl, $title, $thumb, $id, $label);
     }
-    $site = new blogger();
     $list = $site->getfromsiteid($xmlurl, $id, $thumb, $title, $label);
     $upload_path = dirname(__FILE__) . '/../uploads/user/'.$_SESSION['user_id'] . '/';
     $file_name = 'post.json';
     $file = new file();
     $csv = $file->json($upload_path,$file_name, $list);
+    
+    $_SESSION['url_id'] = $xmlurl;
     //$code = get_from_site_id($xmlurl, $id, $thumb, $title, '', $videotype); 
     if (!empty($_POST['edit_post_id'])) {
         //redirect(base_url() . 'post/getcode/edit/' . $id);
@@ -68,6 +70,7 @@ if (!empty($_POST['submit'])) {
     }
 }
 /* end form */
+$image = $site->resize_image(@$_GET['img'],0);
 ?>
 <!doctype html>
 <html>
@@ -122,7 +125,7 @@ if (!empty($_POST['submit'])) {
                             </div>                         
                             <div class="col-md-6">
                                 <div class="input-group">
-                                    <input type="text" id="image-url" class="form-control required" name="imageid" value="<?php echo (!empty($_GET['img'])) ? $_GET['img'] : '';?>"/>
+                                    <input type="text" id="image-url" class="form-control required" name="imageid" value="<?php echo @$image;?>"/>
                                     <div class="input-group-btn">
                                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#cropModal">
                                          Change
@@ -155,7 +158,7 @@ if (!empty($_POST['submit'])) {
                         </div>
                         <div class="form-group">
                             <div id="image-preview">
-                                <img style="width: 100%;max-width: 300px;" src="<?php echo (!empty($_GET['img'])) ? $_GET['img'] : '';?>"/>
+                                <img style="width: 100%;max-width: 300px;" src="<?php echo $site->resize_image(@$_GET['img'],300);?>"/>
                             </div>
                         </div>
                     </form>

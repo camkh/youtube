@@ -295,13 +295,14 @@ $category = $data->feed->category;
                                             }
                                             $arr   = explode('-', $value->id->{'$t'});
                                             $pid   = $arr[2];
+                                            //$img = $blogger->resize_image($value->{'media$thumbnail'}->url,'72-c');
+                                            $img = @$value->{'media$thumbnail'}->url;
                                             ?><tr class="odd">
                                             <td class="checkbox-column  sorting_1">
                                                <input type="checkbox" id="itemid" name="itemid[]" class="uniform" value="<?php echo @$pid; ?>" />
                                             </td>
                                             <td class=" "><span class="responsiveExpander"></span>
                                                 <a href="<?php echo @$link;?>" target="_blank"><img src="<?php
-                                                $img = $blogger->resize_image($value->{'media$thumbnail'}->url,'72-c');
                                                  echo $img;?>" style="float: left;max-width: 72px" class="img-rounded" />&nbsp;<?php echo @$value->title->{'$t'};?>
                                             </a>
                                             </td>
@@ -315,7 +316,7 @@ $category = $data->feed->category;
                                                 </button>
                                                 <ul class="dropdown-menu">
                                                     <li>
-                                                        <a href="<?php echo base_url; ?>blogger/add.php?id=<?php echo @$pid; ?>&title=<?php echo urlencode(@$value->title->{'$t'});?>&img=<?php echo $blogger->resize_image($value->{'media$thumbnail'}->url,'0');?>&l=<?php echo @urlencode($cat);?>"><i class="icon-edit"></i> Add & Edit</a>
+                                                        <a href="<?php echo base_url; ?>blogger/add.php?id=<?php echo @$pid; ?>&title=<?php echo urlencode(@$value->title->{'$t'});?>&img=<?php echo @$img;?>&l=<?php echo @urlencode($cat);?>"><i class="icon-edit"></i> Add & Edit</a>
                                                     </li>
                                                     <li>
                                                         <a href="<?php echo base_url; ?>blogger/edit.php?id=<?php echo @$pid; ?>"><i class="icon-edit"></i> Edit</a>

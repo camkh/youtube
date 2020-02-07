@@ -864,6 +864,100 @@ HTML;
 		//$getpost               = blogger_post($client,$dataContent);
     }
 
+    public function getLabelBySpec($setLabel ,$LabelType, $LabelStatus)
+    {
+        switch ($setLabel) {
+            case 'china':
+                if($LabelType == 'Drama') {
+                    if($LabelStatus == 'Continue') {
+                        $Cates = 'Movies, chinese movies, Series Movie, Chinese Continue, AD1';
+                    } else {
+                       $Cates = 'Movies, chinese movies, Series Movies, Series Chinese, AD1'; 
+                    }
+                    
+                } else {
+                    $Cates = 'Movies, chinese movies, Short Movies, Short Chinese, AD1';
+                }
+                break;
+            case 'thai':
+                if($LabelType == 'Drama') {
+                    if($LabelStatus == 'Continue') {
+                        $Cates = 'Movies, Thai - Khmer, Series Movies,Series Thai,  Continue, Thai Continue, withads';
+                    } else {
+                       $Cates = 'Movies, Thai - Khmer, Series Movies, Series Thai, withads'; 
+                    }
+                    
+                } else {
+                    $Cates = 'Movies, Thai - Khmer, Short Movies, Short Thai, withads';
+                }
+                break;
+            case 'Korea':
+                if($LabelType == 'Drama') {
+                    if($LabelStatus == 'Continue') {
+                        $Cates = 'Movies, Korean - Khmer Movies, Series Movies, Series Korean, Continue,Korean Continue, AD1';
+                    } else {
+                       $Cates = 'Movies, Thai - Khmer, Series Movies, Series Thai, withads'; 
+                    }
+                    
+                } else {
+                    $Cates = 'Movies, Korean Movies, Short Movies, Short Korean, AD1';
+                }
+                break;
+            case 'khmer':
+                if($LabelType == 'Drama') {
+                    if($LabelStatus == 'Continue') {
+                        $Cates = 'Movies, Khmer Movie, Series Movies, Khmer Continue, Continue,withads';
+                    } else {
+                       $Cates = 'Movies, Khmer Movie, Series Movies, Khmer Series, AD1'; 
+                    }
+                    
+                } else {
+                    $Cates = 'Movies, khmer Movie, Short Movies, Khmer Short, AD1';
+                }
+                break;
+            case 'India':
+                if($LabelType == 'Drama') {
+                    if($LabelStatus == 'Continue') {
+                        $Cates = 'Movies, India Movies, Series Movies, Series India, Continue,withads';
+                    } else {
+                       $Cates = 'Movies, India Movies, Series Movies, Series India, withads'; 
+                    }
+                    
+                } else {
+                    $Cates = 'Movies, India Movies, Short Movies, Short India, withads';
+                }
+                break;
+            case 'Hong Kong':
+                if($LabelType == 'Drama') {
+                    if($LabelStatus == 'Continue') {
+                        $Cates = 'Movies, chinese movies, Series Movie, Chinese Continue,Hongkong Movies, AD1';
+                    } else {
+                       $Cates = 'Hongkong Movies,Movies, chinese movies, Series Movies, Series Chinese, AD1'; 
+                    }
+                    
+                } else {
+                    $Cates = 'Hongkong Movies,Movies, chinese movies, Short Movies, Short Chinese, AD1';
+                }
+                break;
+            case 'Taiwan':
+                if($LabelType == 'Drama') {
+                    if($LabelStatus == 'Continue') {
+                        $Cates = 'Movies, chinese movies, Series Movie, Chinese Continue,Taiwan, AD1';
+                    } else {
+                       $Cates = 'Taiwan,Movies, chinese movies, Series Movies, Series Chinese, AD1'; 
+                    }
+                    
+                } else {
+                    $Cates = 'Taiwan,Movies, chinese movies, Short Movies, Short Chinese, AD1';
+                }
+                break;
+            default:
+                $Cates = 'Movies, withads,' . implode(',', $labels);
+                break;
+        }
+        return $Cates;
+    }
+
     public function getPlaylist($param, $title, $thumb = '')
     {
 
@@ -939,9 +1033,35 @@ HTML;
             }
             return $newurl;
         } elseif (preg_match('/googleusercontent/', $url)) {
-            $newsize = "=s" . $imgsize;
-            $segments = explode('=', $url);
-            $newurl = $segments[0].$newsize;
+            if (preg_match('/s72-c/', $url)) {
+                $newurl = str_replace('s72-c', 's'.$imgsize, $url);
+                // $newsize = "s" . $imgsize;
+                // $newurl  = "";
+                // $path     = parse_url($url, PHP_URL_PATH);
+                // $segments = explode('/', rtrim($path, '/'));
+                // var_dump($segments);
+                // die;
+                // //Get URL Protocol and Domain
+                // $parsed_url = parse_url($url);
+                // $domain     = $parsed_url['scheme'] . "://" . $parsed_url['host'];
+                // $newurl_segments = array(
+                //     $domain . "/",
+                //     $segments[1] . "/",
+                //     $segments[2] . "/",
+                //     $segments[3] . "/",
+                //     $segments[4] . "/",
+                //     $newsize . "/", //change this value
+                //     $segments[6],
+                // );
+                // $newurl_segments_count = count($newurl_segments);
+                // for ($i = 0; $i < $newurl_segments_count; $i++) {
+                //     $newurl = $newurl . $newurl_segments[$i];
+                // }
+            } else {
+                $newsize = "=s" . $imgsize;
+                $segments = explode('=', $url);
+                $newurl = $segments[0].$newsize;
+            }
             return $newurl;
         } else {
             return $url;
